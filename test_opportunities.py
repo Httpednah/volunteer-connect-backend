@@ -58,7 +58,7 @@ def test_create_opportunity(client):
         'title': 'New Opportunity',
         'description': 'A great volunteer opportunity',
         'location': 'Community Center',
-        'duration': '4 hours'
+        'duration': '4'
     }
     response = client.post('/opportunities', json=payload)
     assert response.status_code == 201
@@ -104,4 +104,30 @@ def test_delete_opportunity(client):
     # Verify it's deleted
     with app.app_context():
         assert Opportunity.query.get(opp_id) is None
+
+
+def test_create_opportunity_without_title(client):
+    """Test POST /opportunities returns error when title is missing"""
+    payload = {
+        'organization_id': 'org-123',
+        'description': 'No title provided',
+        'location': 'Test location'
+    }
+    response = client.post('/opportunities', json=payload)
+    assert response.status_code == 400
+    data = response.get_json()
+    assert 'Title is required' in data['error']
+
+
+def test_create_opportunity_invalid_duration(client):
+    """Test POST /opportunities returns error when duration is not numeric"""
+    payload = {
+        'organization_id': 'org-123',
+        'title': 'Test Opportunity',
+        'duration': 'not-a-number'
+    }
+    response = client.post('/opportunities', json=payload)
+    assert response.status_code == 400
+    data = response.get_json()
+    assert 'Duration must be a numeric value' in data['error']
 

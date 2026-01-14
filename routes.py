@@ -24,6 +24,15 @@ def create_opportunity():
     if not data:
         return jsonify({'error': 'No data provided'}), 400
     
+    # Validate required fields
+    if not data.get('title'):
+        return jsonify({'error': 'Title is required'}), 400
+    
+    # Validate duration is numeric if provided
+    duration = data.get('duration')
+    if duration and not str(duration).replace('.', '').replace('-', '').isdigit():
+        return jsonify({'error': 'Duration must be a numeric value'}), 400
+    
     new_opportunity = Opportunity(
         organization_id=data.get('organization_id'),
         title=data.get('title'),
