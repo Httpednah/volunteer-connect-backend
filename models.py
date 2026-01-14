@@ -11,12 +11,21 @@ class Opportunity(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     organization_id = db.Column(db.String(36), db.ForeignKey('organizations.id'), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    location = db.Column(db.String(200), nullable=True)
+    duration = db.Column(db.String(50), nullable=True)  # e.g., "2 hours", "1 day"
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     def to_dict(self):
         return {
             'id': self.id,
+            'organization_id': self.organization_id,
+            'title': self.title,
+            'description': self.description,
+            'location': self.location,
+            'duration': self.duration,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
