@@ -40,6 +40,37 @@ def create_organization():
 
     return make_response(org.to_dict(), 201)
 
+# PATCH update organization 
+@app.route("/organizations/<int:id>", methods=["PATCH"])
+def update_organization(id):
+    org = Organization.query.get(id)
+    if not org:
+        return make_response({"error": "Organization not found"}, 404)
+
+    data = request.get_json()
+    if "name" in data and not data["name"]:
+        return make_response({"error": "Name cannot be empty"}, 400)
+
+    # Update any fields provided
+    for field in ["name", "description", "location", "owner_id"]:
+        if field in data:
+            setattr(org, field, data[field])
+
+    db.session.commit()
+    return make_response(org.to_dict(), 200)
+
+
+#  DELETE organization 
+@app.route("/organizations/<int:id>", methods=["DELETE"])
+def delete_organization(id):
+    org = Organization.query.get(id)
+    if not org:
+        return make_response({"error": "Organization not found"}, 404)
+
+    db.session.delete(org)
+    db.session.commit()
+    return make_response({"message": "Organization deleted"}, 200)
+
 
 if __name__ == "__main__":
     app.run(port=5555, debug=True)
