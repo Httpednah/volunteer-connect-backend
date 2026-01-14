@@ -72,6 +72,7 @@ def delete_organization(id):
     return make_response({"message": "Organization deleted"}, 200)
 
 
+
 if __name__ == "__main__":
     app.run(port=5555, debug=True)
 
