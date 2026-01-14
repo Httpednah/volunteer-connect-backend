@@ -37,3 +37,29 @@ def create_opportunity():
     
     return jsonify(new_opportunity.to_dict()), 201
 
+
+@app.route('/opportunities/<int:opportunity_id>', methods=['PATCH'])
+def update_opportunity(opportunity_id):
+    """Update an existing volunteer opportunity"""
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+    
+    opportunity = Opportunity.query.get_or_404(opportunity_id)
+    
+    if 'organization_id' in data:
+        opportunity.organization_id = data['organization_id']
+    if 'title' in data:
+        opportunity.title = data['title']
+    if 'description' in data:
+        opportunity.description = data['description']
+    if 'location' in data:
+        opportunity.location = data['location']
+    if 'duration' in data:
+        opportunity.duration = data['duration']
+    
+    db.session.commit()
+    
+    return jsonify(opportunity.to_dict()), 200
+
