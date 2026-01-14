@@ -10,6 +10,7 @@ class Opportunity(db.Model):
     __tablename__ = 'opportunities'
     
     id = db.Column(db.Integer, primary_key=True)
+    organization_id = db.Column(db.String(36), db.ForeignKey('organizations.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
