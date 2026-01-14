@@ -12,6 +12,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 CORS(app)
 
+from routes import opportunities_bp
+app.register_blueprint(opportunities_bp)
+
 if __name__ == '__main__':
     app.run(debug=True)
 
