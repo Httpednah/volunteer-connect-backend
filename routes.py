@@ -63,3 +63,14 @@ def update_opportunity(opportunity_id):
     
     return jsonify(opportunity.to_dict()), 200
 
+
+@app.route('/opportunities/<int:opportunity_id>', methods=['DELETE'])
+def delete_opportunity(opportunity_id):
+    """Delete a volunteer opportunity"""
+    opportunity = Opportunity.query.get_or_404(opportunity_id)
+    
+    db.session.delete(opportunity)
+    db.session.commit()
+    
+    return jsonify({'message': 'Opportunity deleted successfully'}), 200
+
