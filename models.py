@@ -5,12 +5,26 @@ from app import db
 from datetime import datetime
 
 
+class Organization(db.Model):
+    """Minimal Organization model for foreign key reference"""
+    __tablename__ = 'organizations'
+    
+    id = db.Column(db.String(36), primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name
+        }
+
+
 class Opportunity(db.Model):
     """Model representing volunteer opportunities"""
     __tablename__ = 'opportunities'
     
     id = db.Column(db.Integer, primary_key=True)
-    organization_id = db.Column(db.String(36), db.ForeignKey('organizations.id'), nullable=False)
+    organization_id = db.Column(db.String(36), db.ForeignKey('organizations.id'), nullable=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=True)
     location = db.Column(db.String(200), nullable=True)
