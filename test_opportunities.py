@@ -2,6 +2,10 @@
 Test suite for Opportunity API endpoints
 """
 import pytest
+import sys
+sys.path.insert(0, '/home/mariam/Development/code/FLASK/volunteer-connect-backend')
+
+# Avoid circular import by importing after path setup
 from app import app, db
 from models import Opportunity
 
