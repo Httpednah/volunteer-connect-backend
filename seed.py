@@ -49,3 +49,26 @@ with app.app_context():
 
     db.session.add(org)
     db.session.commit()
+
+ # ---------- OPPORTUNITY ----------
+    opportunity = Opportunity(
+        title="Beach Cleanup",
+        description="Help clean the beach",
+        location="Mombasa",
+        duration=5,
+        organization_id=org.id
+    )
+
+    db.session.add(opportunity)
+    db.session.commit()
+
+    # ---------- APPLICATION ----------
+    application = Application(
+        user_id=volunteer.id,
+        opportunity_id=opportunity.id,
+        motivation_message="I love helping the community",
+        status="pending"
+    )
+
+    db.session.add(application)
+    db.session.commit()
