@@ -7,12 +7,10 @@ from datetime import datetime
 # This object 'db' will be used to interact with the database (create tables, query data, etc.)
 db = SQLAlchemy()
 
-# -------------------------------------------------------------------
 # User Model
 # Represents a user in our system.
 # Inherits from db.Model (standard Flask-SQLAlchemy model) 
 # and SerializerMixin (helper to convert model objects to dictionaries for JSON responses)
-# -------------------------------------------------------------------
 class User(db.Model, SerializerMixin):
     # This specifies the name of the table in the database
     __tablename__ = 'users'
