@@ -72,3 +72,18 @@ with app.app_context():
 
     db.session.add(application)
     db.session.commit()
+
+   # ---------- PAYMENT ----------
+    payment = Payment(
+        user_id=volunteer.id,
+        opportunity_id=opportunity.id,
+        amount=1000,
+        payment_status="completed",
+        payment_date=datetime.utcnow()
+    )
+
+    db.session.add(payment)
+    db.session.commit()
+
+    print("✅ Seed complete")
+    
