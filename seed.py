@@ -20,3 +20,21 @@ with app.app_context():
 
     db.drop_all()
     db.create_all()
+
+    # ---------- USERS ----------
+    volunteer = User(
+        name="Craig Volunteer",
+        email="volunteer@test.com",
+        password=generate_password_hash("password123"),
+        role="volunteer"
+    )
+
+    org_owner = User(
+        name="Org Owner",
+        email="org@test.com",
+        password=generate_password_hash("password123"),
+        role="organization"
+    )
+
+    db.session.add_all([volunteer, org_owner])
+    db.session.commit()

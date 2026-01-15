@@ -18,3 +18,4 @@ def test_applications_fetch(client):
 def test_payments_fetch(client):
     res = client.get("/payments")
     assert res.status_code == 200
+
