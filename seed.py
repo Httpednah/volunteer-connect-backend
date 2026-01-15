@@ -38,3 +38,26 @@ with app.app_context():
 
     db.session.add_all([volunteer, org_owner])
     db.session.commit()
+
+     # ---------- ORGANIZATION ----------
+    org = Organization(
+        name="Helping Hands",
+        description="Community volunteer organization",
+        location="Nairobi",
+        owner_id=org_owner.id
+    )
+
+    db.session.add(org)
+    db.session.commit()
+
+    # ---------- OPPORTUNITY ----------
+    opportunity = Opportunity(
+        title="Beach Cleanup",
+        description="Help clean the beach",
+        location="Mombasa",
+        duration=5,
+        organization_id=org.id
+    )
+
+    db.session.add(opportunity)
+    db.session.commit()
