@@ -2,12 +2,8 @@
 Test suite for Opportunity API endpoints
 """
 import pytest
-import sys
-sys.path.insert(0, '/home/mariam/Development/code/FLASK/volunteer-connect-backend')
-
-# Avoid circular import by importing after path setup
 from app import app, db
-from models import Opportunity
+from models import Organization, Opportunity
 
 
 @pytest.fixture
@@ -23,27 +19,35 @@ def client():
             db.drop_all()
 
 
+def create_test_org():
+    """Helper to create a test organization"""
+    org = Organization(name='Test Org')
+    db.session.add(org)
+    db.session.commit()
+    return org
+
+
 def test_get_opportunities_empty(client):
-    """Test GET /opportunities returns empty list when no opportunities exist"""
+    """GET /opportunities returns empty list when no opportunities exist"""
     response = client.get('/opportunities')
     assert response.status_code == 200
     assert response.get_json() == []
 
 
 def test_get_opportunities_with_data(client):
-    """Test GET /opportunities returns opportunities when data exists"""
-    # Create test opportunity
+    """GET /opportunities returns opportunities when data exists"""
     with app.app_context():
+        org = create_test_org()
         opp = Opportunity(
-            organization_id='org-123',
+            organization_id=org.id,
             title='Test Opportunity',
             description='Test description',
             location='Test location',
-            duration='2 hours'
+            duration=2
         )
         db.session.add(opp)
         db.session.commit()
-    
+
     response = client.get('/opportunities')
     assert response.status_code == 200
     data = response.get_json()
@@ -52,34 +56,38 @@ def test_get_opportunities_with_data(client):
 
 
 def test_create_opportunity(client):
-    """Test POST /opportunities creates new opportunity"""
+    """POST /opportunities creates new opportunity"""
+    with app.app_context():
+        org = create_test_org()
+
     payload = {
-        'organization_id': 'org-456',
+        'organization_id': org.id,
         'title': 'New Opportunity',
         'description': 'A great volunteer opportunity',
         'location': 'Community Center',
-        'duration': '4'
+        'duration': 4
     }
     response = client.post('/opportunities', json=payload)
     assert response.status_code == 201
     data = response.get_json()
     assert data['title'] == 'New Opportunity'
-    assert data['organization_id'] == 'org-456'
+    assert data['organization_id'] == org.id
 
 
 def test_update_opportunity(client):
-    """Test PATCH /opportunities/<id> updates an opportunity"""
-    # Create opportunity first
+    """PATCH /opportunities/<id> updates an opportunity"""
     with app.app_context():
+        org = create_test_org()
         opp = Opportunity(
-            organization_id='org-789',
+            organization_id=org.id,
             title='Original Title',
-            description='Original description'
+            description='Original description',
+            duration=2
         )
         db.session.add(opp)
         db.session.commit()
         opp_id = opp.id
-    
+
     response = client.patch(f'/opportunities/{opp_id}', json={'title': 'Updated Title'})
     assert response.status_code == 200
     data = response.get_json()
@@ -87,31 +95,35 @@ def test_update_opportunity(client):
 
 
 def test_delete_opportunity(client):
-    """Test DELETE /opportunities/<id> deletes an opportunity"""
-    # Create opportunity first
+    """DELETE /opportunities/<id> deletes an opportunity"""
     with app.app_context():
+        org = create_test_org()
         opp = Opportunity(
-            organization_id='org-del',
-            title='To Be Deleted'
+            organization_id=org.id,
+            title='To Be Deleted',
+            duration=2
         )
         db.session.add(opp)
         db.session.commit()
         opp_id = opp.id
-    
+
     response = client.delete(f'/opportunities/{opp_id}')
     assert response.status_code == 200
-    
-    # Verify it's deleted
+
     with app.app_context():
         assert Opportunity.query.get(opp_id) is None
 
 
 def test_create_opportunity_without_title(client):
-    """Test POST /opportunities returns error when title is missing"""
+    """POST /opportunities returns error when title is missing"""
+    with app.app_context():
+        org = create_test_org()
+
     payload = {
-        'organization_id': 'org-123',
+        'organization_id': org.id,
         'description': 'No title provided',
-        'location': 'Test location'
+        'location': 'Test location',
+        'duration': 2
     }
     response = client.post('/opportunities', json=payload)
     assert response.status_code == 400
@@ -120,9 +132,12 @@ def test_create_opportunity_without_title(client):
 
 
 def test_create_opportunity_invalid_duration(client):
-    """Test POST /opportunities returns error when duration is not numeric"""
+    """POST /opportunities returns error when duration is not numeric"""
+    with app.app_context():
+        org = create_test_org()
+
     payload = {
-        'organization_id': 'org-123',
+        'organization_id': org.id,
         'title': 'Test Opportunity',
         'duration': 'not-a-number'
     }
@@ -130,4 +145,3 @@ def test_create_opportunity_invalid_duration(client):
     assert response.status_code == 400
     data = response.get_json()
     assert 'Duration must be a numeric value' in data['error']
-
