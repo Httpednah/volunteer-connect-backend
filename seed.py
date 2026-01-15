@@ -21,3 +21,10 @@ with app.app_context():
     db.drop_all()
     db.create_all()
 
+ # ---------- USERS ----------
+    volunteer = User(
+        name="Craig Volunteer",
+        email="volunteer@test.com",
+        password=generate_password_hash("password123"),
+        role="volunteer"
+    )
