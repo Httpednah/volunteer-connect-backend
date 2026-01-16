@@ -2,8 +2,9 @@
 Test suite for Opportunity API endpoints
 """
 import pytest
-from app import app, db
-from models import Organization, Opportunity
+from app import app
+from extensions import db
+from models import Organization, Opportunity, User
 
 
 @pytest.fixture
@@ -21,7 +22,14 @@ def client():
 
 def create_test_org():
     """Helper to create a test organization"""
-    org = Organization(name='Test Org')
+    user = User.query.filter_by(email="test@example.com").first()
+    if not user:
+        user = User(name="Test User", email="test@example.com", role="organization")
+        user.set_password("password")
+        db.session.add(user)
+        db.session.commit()
+        
+    org = Organization(name='Test Org', owner_id=user.id)
     db.session.add(org)
     db.session.commit()
     return org
@@ -59,9 +67,10 @@ def test_create_opportunity(client):
     """POST /opportunities creates new opportunity"""
     with app.app_context():
         org = create_test_org()
+        org_id = org.id
 
     payload = {
-        'organization_id': org.id,
+        'organization_id': org_id,
         'title': 'New Opportunity',
         'description': 'A great volunteer opportunity',
         'location': 'Community Center',
@@ -71,7 +80,7 @@ def test_create_opportunity(client):
     assert response.status_code == 201
     data = response.get_json()
     assert data['title'] == 'New Opportunity'
-    assert data['organization_id'] == org.id
+    assert data['organization_id'] == org_id
 
 
 def test_update_opportunity(client):
@@ -118,9 +127,10 @@ def test_create_opportunity_without_title(client):
     """POST /opportunities returns error when title is missing"""
     with app.app_context():
         org = create_test_org()
+        org_id = org.id
 
     payload = {
-        'organization_id': org.id,
+        'organization_id': org_id,
         'description': 'No title provided',
         'location': 'Test location',
         'duration': 2
@@ -135,9 +145,10 @@ def test_create_opportunity_invalid_duration(client):
     """POST /opportunities returns error when duration is not numeric"""
     with app.app_context():
         org = create_test_org()
+        org_id = org.id
 
     payload = {
-        'organization_id': org.id,
+        'organization_id': org_id,
         'title': 'Test Opportunity',
         'duration': 'not-a-number'
     }

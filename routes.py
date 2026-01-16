@@ -1,76 +1,66 @@
 """
 API Routes for Volunteer Connect
 
-This module defines all Flask routes for managing volunteer opportunities.
+This module defines Flask routes for managing volunteer opportunities.
+Note: These routes are currently also implemented in app.py for a streamlined setup.
 """
 from flask import Blueprint, jsonify, request
-from app import app, db
+from extensions import db
 from models import Opportunity
 
 
+# Blueprint can be used for modularizing routes in larger applications
 opportunities_bp = Blueprint('opportunities', __name__)
 
 
-@app.route('/opportunities', methods=['GET'])
-def get_opportunities():
+def register_routes(app):
     """
-    GET /opportunities
-    
-    Retrieve all volunteer opportunities from the database.
-    
-    Returns:
-        200: List of all opportunities with their details
+    Optional helper to register routes if using this file as a module.
+    Currently, app.py contains the primary route definitions.
     """
-    opportunities = Opportunity.query.all()
-    return jsonify([opp.to_dict() for opp in opportunities]), 200
-
-
-@app.route('/opportunities', methods=['POST'])
-def create_opportunity():
-    """
-    POST /opportunities
     
-    Create a new volunteer opportunity.
-    
-    Required fields:
-        - title: Title of the opportunity (string)
-    
-    Optional fields:
-        - organization_id: ID of the posting organization (string)
-        - description: Detailed description of duties (text)
-        - location: Where the opportunity takes place (string)
-        - duration: Time commitment in hours (string/numeric)
-    
-    Returns:
-        201: Created opportunity with ID
-        400: Validation error (missing title or invalid duration)
-    """
-    data = request.get_json()
+    @app.route('/opportunities', methods=['GET'])
+    def get_opportunities_list():
+        """
+        GET /opportunities
+        Retrieve all volunteer opportunities from the database.
+        """
+        opportunities = Opportunity.query.all()
+        return jsonify([opp.to_dict() for opp in opportunities]), 200
 
-    if not data:
-        return jsonify({'error': 'No data provided'}), 400
 
-    # Validate required fields
-    if not data.get('title'):
-        return jsonify({'error': 'Title is required'}), 400
+    @app.route('/opportunities', methods=['POST'])
+    def create_new_opportunity():
+        """
+        POST /opportunities
+        Create a new volunteer opportunity with validation.
+        """
+        data = request.get_json()
 
-    # Validate duration is numeric if provided
-    duration = data.get('duration')
-    if duration and not str(duration).replace('.', '').replace('-', '').isdigit():
-        return jsonify({'error': 'Duration must be a numeric value'}), 400
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
 
-    new_opportunity = Opportunity(
-        organization_id=data.get('organization_id'),
-        title=data.get('title'),
-        description=data.get('description'),
-        location=data.get('location'),
-        duration=data.get('duration')
-    )
+        # Validate required fields
+        if not data.get('title'):
+            return jsonify({'error': 'Title is required'}), 400
 
-    db.session.add(new_opportunity)
-    db.session.commit()
+        # Validate duration is numeric if provided
+        duration = data.get('duration')
+        if duration and not str(duration).replace('.', '').replace('-', '').isdigit():
+            return jsonify({'error': 'Duration must be a numeric value'}), 400
 
-    return jsonify(new_opportunity.to_dict()), 201
+        new_opportunity = Opportunity(
+            organization_id=data.get('organization_id'),
+            title=data.get('title'),
+            description=data.get('description'),
+            location=data.get('location'),
+            duration=data.get('duration')
+        )
+
+        db.session.add(new_opportunity)
+        db.session.commit()
+
+        return jsonify(new_opportunity.to_dict()), 201
 
 
 @app.route('/opportunities/<int:opportunity_id>', methods=['PATCH'])
