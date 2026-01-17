@@ -1,6 +1,5 @@
 """
 Database Models for Volunteer Connect
-Compatible with the current app.py setup
 """
 from app import db
 from datetime import datetime
