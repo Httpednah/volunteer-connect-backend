@@ -8,7 +8,7 @@ from models import User, Organization, Opportunity, Application, Payment
 
 def seed():
     with app.app_context():
-        # 1️Clear existing data
+        # 1️ Clear existing data
         Payment.query.delete()
         Application.query.delete()
         Opportunity.query.delete()
@@ -35,45 +35,78 @@ def seed():
         print("Created users...")
 
         # 3️ Create Organizations
-        org1 = Organization(name="Local Food Bank", description="Helps feed local families", location="123 Main St", owner_id=owner1.id)
-        org2 = Organization(name="City Animal Shelter", description="Rescues and cares for animals", location="456 Oak Ave", owner_id=owner2.id)
-        org3 = Organization(name="Youth Mentoring Program", description="Supports youth education", location="789 Elm St", owner_id=owner1.id)
+        org1 = Organization(
+            name="Local Food Bank",
+            description="Helps feed local families",
+            location="123 Main St",
+            owner_id=owner1.id
+        )
+        org2 = Organization(
+            name="City Animal Shelter",
+            description="Rescues and cares for animals",
+            location="456 Oak Ave",
+            owner_id=owner2.id
+        )
+        org3 = Organization(
+            name="Youth Mentoring Program",
+            description="Supports youth education",
+            location="789 Elm St",
+            owner_id=owner1.id
+        )
 
         db.session.add_all([org1, org2, org3])
         db.session.commit()
         print("Created organizations...")
 
-        # 4️Create Opportunities
-        opp1 = Opportunity(title="Food Sorting Helper", description="Sort and package food donations", location="Food Bank", duration=4, organization_id=org1.id)
-        opp2 = Opportunity(title="Delivery Driver", description="Deliver food packages to elderly residents", location="Various", duration=3, organization_id=org1.id)
-        opp3 = Opportunity(title="Dog Walker", description="Walk shelter dogs", location="Animal Shelter", duration=2, organization_id=org2.id)
-        opp4 = Opportunity(title="Cat Caretaker", description="Feed and groom cats", location="Animal Shelter", duration=3, organization_id=org2.id)
-        opp5 = Opportunity(title="Math Tutor", description="Help students with math homework", location="Community Center", duration=2, organization_id=org3.id)
-        opp6 = Opportunity(title="Reading Buddy", description="Improve literacy with young students", location="Public Library", duration=1, organization_id=org3.id)
-        opp7 = Opportunity(title="Community Garden Helper", description="Maintain community garden", location="Community Garden", duration=5, organization_id=org1.id)
-        opp8 = Opportunity(title="Event Volunteer", description="Assist at animal shelter fundraising events", location="Various", duration=6, organization_id=org2.id)
+        # 4️ Create Opportunities (assign created_by = org.owner_id)
+        opp_data = [
+            ("Food Sorting Helper", "Sort and package food donations", "Food Bank", 4, org1),
+            ("Delivery Driver", "Deliver food packages to elderly residents", "Various", 3, org1),
+            ("Dog Walker", "Walk shelter dogs", "Animal Shelter", 2, org2),
+            ("Cat Caretaker", "Feed and groom cats", "Animal Shelter", 3, org2),
+            ("Math Tutor", "Help students with math homework", "Community Center", 2, org3),
+            ("Reading Buddy", "Improve literacy with young students", "Public Library", 1, org3),
+            ("Community Garden Helper", "Maintain community garden", "Community Garden", 5, org1),
+            ("Event Volunteer", "Assist at animal shelter fundraising events", "Various", 6, org2),
+        ]
 
-        db.session.add_all([opp1, opp2, opp3, opp4, opp5, opp6, opp7, opp8])
+        opportunities = []
+        for title, desc, location, duration, org in opp_data:
+            opp = Opportunity(
+                title=title,
+                description=desc,
+                location=location,
+                duration=duration,
+                organization_id=org.id,
+                created_by=org.owner_id  # <-- assign the owner as creator
+            )
+            opportunities.append(opp)
+
+        db.session.add_all(opportunities)
         db.session.commit()
         print("Created opportunities...")
 
-        # 5️Create Applications (many-to-many user-submitted attribute)
-        app1 = Application(user_id=user1.id, opportunity_id=opp1.id, motivation_message="I love helping the community!")
-        app2 = Application(user_id=user1.id, opportunity_id=opp3.id, motivation_message="I enjoy working with animals")
-        app3 = Application(user_id=user2.id, opportunity_id=opp5.id, motivation_message="I want to help students learn math")
-        app4 = Application(user_id=user2.id, opportunity_id=opp6.id, motivation_message="I enjoy reading with kids")
-        app5 = Application(user_id=user2.id, opportunity_id=opp4.id, motivation_message="I am comfortable caring for cats")
+        # 5️ Create Applications
+        apps = [
+            Application(user_id=user1.id, opportunity_id=opportunities[0].id, motivation_message="I love helping the community!"),
+            Application(user_id=user1.id, opportunity_id=opportunities[2].id, motivation_message="I enjoy working with animals"),
+            Application(user_id=user2.id, opportunity_id=opportunities[4].id, motivation_message="I want to help students learn math"),
+            Application(user_id=user2.id, opportunity_id=opportunities[5].id, motivation_message="I enjoy reading with kids"),
+            Application(user_id=user2.id, opportunity_id=opportunities[3].id, motivation_message="I am comfortable caring for cats"),
+        ]
 
-        db.session.add_all([app1, app2, app3, app4, app5])
+        db.session.add_all(apps)
         db.session.commit()
         print("Created applications...")
 
-        # 6️Create Payments
-        pay1 = Payment(user_id=user1.id, opportunity_id=opp1.id, amount=50.0, payment_status="completed")
-        pay2 = Payment(user_id=user2.id, opportunity_id=opp5.id, amount=30.0, payment_status="pending")
-        pay3 = Payment(user_id=user2.id, opportunity_id=opp6.id, amount=20.0, payment_status="completed")
+        # 6️ Create Payments
+        pays = [
+            Payment(user_id=user1.id, opportunity_id=opportunities[0].id, amount=50.0, payment_status="completed"),
+            Payment(user_id=user2.id, opportunity_id=opportunities[4].id, amount=30.0, payment_status="pending"),
+            Payment(user_id=user2.id, opportunity_id=opportunities[5].id, amount=20.0, payment_status="completed"),
+        ]
 
-        db.session.add_all([pay1, pay2, pay3])
+        db.session.add_all(pays)
         db.session.commit()
         print("Created payments...")
 
