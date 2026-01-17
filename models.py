@@ -1,8 +1,6 @@
-"""
-Database Models for Volunteer Connect
-"""
 from extensions import db
 from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.orm import validates
 
 # --------------------------
@@ -22,6 +20,13 @@ class User(db.Model):
     organizations = db.relationship("Organization", backref="owner", cascade="all, delete")
     applications = db.relationship("Application", backref="user", cascade="all, delete")
     payments = db.relationship("Payment", backref="user", cascade="all, delete")
+
+    # Password helpers
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
     def to_dict(self):
         return {
