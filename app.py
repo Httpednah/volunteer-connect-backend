@@ -30,6 +30,8 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     organizations = db.relationship("Organization", backref="owner", cascade="all, delete")
+    applications = db.relationship("Application", backref="user", cascade="all, delete")
+    payments = db.relationship("Payment", backref="user", cascade="all, delete")
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -63,6 +65,18 @@ class Opportunity(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     applications = db.relationship("Application", backref="opportunity", cascade="all, delete")
+    payments = db.relationship("Payment", backref="opportunity", cascade="all, delete")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "description": self.description,
+            "location": self.location,
+            "duration": self.duration,
+            "organization_id": self.organization_id,
+            "created_at": self.created_at.isoformat() if self.created_at else None
+        }
 
 
 class Application(db.Model):
@@ -86,10 +100,10 @@ class Payment(db.Model):
     payment_status = db.Column(db.String, default="pending")
     payment_date = db.Column(db.DateTime, default=datetime.utcnow)
 
+
 # --------------------
 # Routes
 # --------------------
-
 @app.route("/")
 def home():
     return jsonify({"message": "Volunteer Connect API running"})
@@ -99,53 +113,33 @@ def home():
 @app.route("/register", methods=["POST"])
 def register():
     data = request.get_json()
-
     if not all(k in data for k in ("name", "email", "password", "role")):
         return jsonify({"error": "Missing fields"}), 400
-
     if User.query.filter_by(email=data["email"]).first():
         return jsonify({"error": "Email already exists"}), 400
 
-    user = User(
-        name=data["name"],
-        email=data["email"],
-        role=data["role"]
-    )
+    user = User(name=data["name"], email=data["email"], role=data["role"])
     user.set_password(data["password"])
-
     db.session.add(user)
     db.session.commit()
-
     return jsonify({"message": "User registered"}), 201
 
 
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
-
     user = User.query.filter_by(email=data.get("email")).first()
     if not user or not user.check_password(data.get("password")):
         return jsonify({"error": "Invalid credentials"}), 401
-
-    return jsonify({
-        "id": user.id,
-        "name": user.name,
-        "role": user.role
-    })
+    return jsonify({"id": user.id, "name": user.name, "role": user.role})
 
 
 # ---------- ORGANIZATIONS ----------
 @app.route("/organizations", methods=["GET", "POST"])
 def organizations():
     if request.method == "GET":
-        return jsonify([
-            {
-                "id": o.id,
-                "name": o.name,
-                "location": o.location
-            } for o in Organization.query.all()
-        ])
-
+        return jsonify([{"id": o.id, "name": o.name, "location": o.location} for o in Organization.query.all()])
+    
     data = request.get_json()
     org = Organization(
         name=data["name"],
@@ -162,25 +156,48 @@ def organizations():
 @app.route("/opportunities", methods=["GET", "POST"])
 def opportunities():
     if request.method == "GET":
-        return jsonify([
-            {
-                "id": o.id,
-                "title": o.title,
-                "location": o.location
-            } for o in Opportunity.query.all()
-        ])
+        return jsonify([o.to_dict() for o in Opportunity.query.all()])
 
     data = request.get_json()
+    if not data.get("title"):
+        return jsonify({"error": "Title is required"}), 400
+
+    duration = data.get("duration")
+    if duration is not None:
+        try:
+            duration = int(duration)
+        except (ValueError, TypeError):
+            return jsonify({"error": "Duration must be a numeric value"}), 400
+
     opp = Opportunity(
         title=data["title"],
         description=data.get("description"),
         location=data.get("location"),
-        duration=data.get("duration"),
-        organization_id=data["organization_id"]
+        duration=duration,
+        organization_id=data.get("organization_id")
     )
     db.session.add(opp)
     db.session.commit()
-    return jsonify({"message": "Opportunity created"}), 201
+    return jsonify(opp.to_dict()), 201
+
+
+@app.route("/opportunities/<int:id>", methods=["PATCH"])
+def update_opportunity(id):
+    opp = Opportunity.query.get_or_404(id)
+    data = request.get_json()
+    for field in ["title", "description", "location", "duration"]:
+        if field in data:
+            setattr(opp, field, data[field])
+    db.session.commit()
+    return jsonify(opp.to_dict()), 200
+
+
+@app.route("/opportunities/<int:id>", methods=["DELETE"])
+def delete_opportunity(id):
+    opp = Opportunity.query.get_or_404(id)
+    db.session.delete(opp)
+    db.session.commit()
+    return jsonify({"message": "Opportunity deleted"}), 200
 
 
 # ---------- APPLICATIONS ----------
@@ -210,3 +227,6 @@ def payments():
     db.session.commit()
     return jsonify({"message": "Payment recorded"}), 201
 
+
+if __name__ == "__main__":
+    app.run(debug=True)
