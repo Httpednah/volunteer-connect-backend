@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, make_response
-from models import db, Payment, User, Opportunity
+from extensions import db
+from models import Payment, User, Opportunity
 
 # -------------------------------------------------------------------
 # Blueprint Configuration

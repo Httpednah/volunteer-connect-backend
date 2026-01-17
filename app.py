@@ -2,20 +2,22 @@ from flask import Flask, request, jsonify
 from flask_migrate import Migrate
 from flask_cors import CORS
 from extensions import db
+from config import Config
 from models import User, Organization, Opportunity, Application, Payment
+from routes import payments_bp
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # --------------------
 # App setup
 # --------------------
 app = Flask(__name__)
+app.config.from_object(Config)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///volunteer.db"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SECRET_KEY"] = "super-secret-key"
+# Register blueprints
+app.register_blueprint(payments_bp)
 
-# Enable CORS
-CORS(app, resources={r"/*": {"origins": "*"}})
+# Initialize CORS for production (allows all origins, can be restricted in production)
+CORS(app)
 
 # Initialize db and migrations
 db.init_app(app)
