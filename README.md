@@ -1,10 +1,5 @@
 # Volunteer Connect Backend
 
-## Overview
-This repository contains the Flask REST API backend for Volunteer Connect, a full-stack web application that connects volunteers with organizations offering volunteer opportunities. The backend provides authentication, role-based access control, database persistence, and RESTful endpoints consumed by a React frontend.
-
-The backend is designed to support real-world workflows such as volunteer applications, organization management, and payments, while maintaining a clean and scalable architecture.
-
 ## Tech Stack
 - Python 3
 - Flask
@@ -14,38 +9,11 @@ The backend is designed to support real-world workflows such as volunteer applic
 - SQLite (development) / PostgreSQL (production)
 - RESTful API architecture
 
-## Project Structure
-# Volunteer Connect Backend
-
 ## Overview
 This repository contains the Flask REST API backend for Volunteer Connect, a full-stack web application that connects volunteers with organizations offering volunteer opportunities. The backend provides authentication, role-based access control, database persistence, and RESTful endpoints consumed by a React frontend.
 
 The backend is designed to support real-world workflows such as volunteer applications, organization management, and payments, while maintaining a clean and scalable architecture.
 
-## Tech Stack
-- Python 3
-- Flask
-- Flask-SQLAlchemy
-- Flask-Migrate
-- Flask-Bcrypt
-- SQLite (development) / PostgreSQL (production)
-- RESTful API architecture
-
-# Volunteer Connect Backend
-
-## Overview
-This repository contains the Flask REST API backend for Volunteer Connect, a full-stack web application that connects volunteers with organizations offering volunteer opportunities. The backend provides authentication, role-based access control, database persistence, and RESTful endpoints consumed by a React frontend.
-
-The backend is designed to support real-world workflows such as volunteer applications, organization management, and payments, while maintaining a clean and scalable architecture.
-
-## Tech Stack
-- Python 3
-- Flask
-- Flask-SQLAlchemy
-- Flask-Migrate
-- Flask-Bcrypt
-- SQLite (development) / PostgreSQL (production)
-- RESTful API architecture
 
 ## Project Structure
 
