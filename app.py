@@ -12,11 +12,12 @@ app = Flask(__name__)
 # Configure the SQLite database URI and disable modification tracking for performance
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///volunteer.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SECRET_KEY"] = "super-secret-key"
 
-# Enable Cross-Origin Resource Sharing (CORS) for all routes
+# Enable CORS
 CORS(app)
 
-# Initialize the database and migration engine
+# Initialize db and migrations
 db.init_app(app)
 migrate = Migrate(app, db)
 
@@ -29,8 +30,7 @@ def home():
     """Welcome endpoint to verify the API is running."""
     return jsonify({"message": "Group 5 Volunteer Connect API running"})
 
-
-# ---------- AUTHENTICATION ----------
+# ---------- AUTH ----------
 @app.route("/register", methods=["POST"])
 def register():
     """Registers a new user (Volunteer or Organization)."""
@@ -58,37 +58,25 @@ def register():
 
     return jsonify({"message": "User registered"}), 201
 
-
 @app.route("/login", methods=["POST"])
 def login():
     """Authenticates a user and returns their profile details."""
     data = request.get_json()
-
-    # Find the user by email and verify the password hash
     user = User.query.filter_by(email=data.get("email")).first()
     if not user or not user.check_password(data.get("password")):
         return jsonify({"error": "Invalid credentials"}), 401
-
     return jsonify({
         "id": user.id,
         "name": user.name,
         "role": user.role
     })
 
-
 # ---------- ORGANIZATIONS ----------
 @app.route("/organizations", methods=["GET", "POST"])
 def organizations():
     """Handles listing all organizations and creating a new one."""
     if request.method == "GET":
-        # Return a list of all organizations with limited fields
-        return jsonify([
-            {
-                "id": o.id,
-                "name": o.name,
-                "location": o.location
-            } for o in Organization.query.all()
-        ])
+        return jsonify([o.to_dict() for o in Organization.query.all()])
 
     # For POST requests, create a new organization record
     data = request.get_json()
@@ -102,16 +90,11 @@ def organizations():
     db.session.commit()
     return jsonify({"message": "Organization created"}), 201
 
-
 # ---------- OPPORTUNITIES ----------
-@app.route('/opportunities', methods=['GET'])
-def get_opportunities():
-    """
-    GET /opportunities
-    Retrieve all volunteer opportunities from the database.
-    """
-    opportunities = Opportunity.query.all()
-    return jsonify([opp.to_dict() for opp in opportunities]), 200
+@app.route("/opportunities", methods=["GET", "POST"])
+def opportunities():
+    if request.method == "GET":
+        return jsonify([o.to_dict() for o in Opportunity.query.all()])
 
 
 @app.route('/opportunities', methods=['POST'])
@@ -190,7 +173,6 @@ def delete_opportunity(opportunity_id):
 
     return jsonify({'message': 'Opportunity deleted successfully'}), 200
 
-
 # ---------- APPLICATIONS ----------
 @app.route("/applications", methods=["POST"])
 def apply():
@@ -204,7 +186,6 @@ def apply():
     db.session.add(appn)
     db.session.commit()
     return jsonify({"message": "Application submitted"}), 201
-
 
 # ---------- PAYMENTS ----------
 @app.route("/payments", methods=["POST"])
@@ -220,6 +201,9 @@ def payments():
     db.session.commit()
     return jsonify({"message": "Payment recorded"}), 201
 
+# --------------------
+# Run App
+# --------------------
 if __name__ == "__main__":
-    app.run(port=5000, debug=True)
+    app.run(debug=True)
 

@@ -1,4 +1,4 @@
-# Mariam's Opportunity Model + Routes - 15 Commits COMPLETED ✅
+# Mariam's Opportunity Model + Routes - 
 
 - [x] Commit 1: Set up basic Flask app with SQLAlchemy in app.py
 - [x] Commit 2: Create base Opportunity model with timestamps
