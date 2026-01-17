@@ -1,10 +1,8 @@
 from flask import Flask, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
-from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
-from extensions import db 
+from extensions import db
+from models import User, Organization, Opportunity, Application, Payment
 
 # --------------------
 # App setup
@@ -12,13 +10,14 @@ from extensions import db
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///volunteer.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SECRET_KEY"] = "super-secret-key"
 
+# Enable CORS
 CORS(app)
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
 
-# Import models after db initialization
-from models import User, Organization, Opportunity, Application, Payment
+# Initialize db and migrations
+db.init_app(app)
+migrate = Migrate(app, db)
 
 # --------------------
 # Routes
@@ -124,6 +123,9 @@ def payments():
     db.session.commit()
     return jsonify({"message": "Payment recorded"}), 201
 
+# --------------------
+# Run App
+# --------------------
 if __name__ == "__main__":
     app.run(debug=True)
 
