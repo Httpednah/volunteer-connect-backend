@@ -3,7 +3,7 @@ Database Models for Volunteer Connect
 """
 from extensions import db
 from datetime import datetime
-from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy.orm import validates
 
 # --------------------------
 # User Model
@@ -18,15 +18,10 @@ class User(db.Model):
     role = db.Column(db.String, nullable=False)  # volunteer | organization
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    # Relationships
     organizations = db.relationship("Organization", backref="owner", cascade="all, delete")
     applications = db.relationship("Application", backref="user", cascade="all, delete")
     payments = db.relationship("Payment", backref="user", cascade="all, delete")
-
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
 
     def to_dict(self):
         return {
@@ -36,6 +31,7 @@ class User(db.Model):
             "role": self.role,
             "created_at": self.created_at.isoformat() if self.created_at else None
         }
+
 
 # --------------------------
 # Organization Model
@@ -61,6 +57,7 @@ class Organization(db.Model):
             "owner_id": self.owner_id,
             "created_at": self.created_at.isoformat() if self.created_at else None
         }
+
 
 # --------------------------
 # Opportunity Model
@@ -92,6 +89,7 @@ class Opportunity(db.Model):
             "created_at": self.created_at.isoformat() if self.created_at else None
         }
 
+
 # --------------------------
 # Application Model
 # --------------------------
@@ -115,6 +113,7 @@ class Application(db.Model):
             "applied_at": self.applied_at.isoformat() if self.applied_at else None
         }
 
+
 # --------------------------
 # Payment Model
 # --------------------------
@@ -127,6 +126,19 @@ class Payment(db.Model):
     amount = db.Column(db.Float, nullable=False)
     payment_status = db.Column(db.String, default="pending")  # pending | completed | failed
     payment_date = db.Column(db.DateTime, default=datetime.utcnow)
+
+    @validates('payment_status')
+    def validate_status(self, key, status):
+        valid_statuses = ['pending', 'completed', 'failed']
+        if status not in valid_statuses:
+            raise ValueError(f"Status must be one of {', '.join(valid_statuses)}")
+        return status
+
+    @validates('amount')
+    def validate_amount(self, key, amount):
+        if amount <= 0:
+            raise ValueError("Amount must be positive")
+        return amount
 
     def to_dict(self):
         return {
